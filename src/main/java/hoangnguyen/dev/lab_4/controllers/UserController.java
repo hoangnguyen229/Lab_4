@@ -1,11 +1,9 @@
 package hoangnguyen.dev.lab_4.controllers;
 
-import hoangnguyen.dev.lab_4.models.Role;
 import hoangnguyen.dev.lab_4.models.User;
-import hoangnguyen.dev.lab_4.requests.UserEdit;
-import hoangnguyen.dev.lab_4.requests.UserRequest;
 import hoangnguyen.dev.lab_4.services.RoleService;
 import hoangnguyen.dev.lab_4.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,9 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 @RequestMapping("/users")
@@ -28,42 +23,51 @@ public class UserController {
     private RoleService roleService;
 
     @GetMapping
-    public String showFormUser(Model model){
-        List<User> userList = userService.getAllUsers();
-        model.addAttribute("users",userList);
-        return "/users/frm-view";
+    public String showUserList(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        return "/users/user-list";
     }
-    @GetMapping("/new")
-    public String addStudent(Model model){
-        User user = new User();
-        List<Role> roles = roleService.getAllRoles();
-        model.addAttribute("user", user);
-        model.addAttribute("roles",roles);
-        return "users/frm-addUser";
+    // For adding a new user
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("user", new User());
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "/users/add-user";
     }
-    @PostMapping("/save")
-    public String addUser(UserRequest userRequest, BindingResult result){
+    @PostMapping("/add")
+    public String addUser(@Valid User user,
+                             BindingResult result) {
         if (result.hasErrors()) {
-            return "/users/frm-addUser";
+            return "/users/add-user";
         }
-        userService.createUser(userRequest);
+        userService.addUser(user);
         return "redirect:/users";
     }
     @GetMapping("/edit/{id}")
-    public String editStudent(@PathVariable Long id, Model model){
-        User user = userService.getUserById(id);
-        model.addAttribute("users", user);
-        return "/users/frm-edit";
+    public String showEditForm(@PathVariable Long id,
+                               Model model) {
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+        model.addAttribute("user",user);
+        model.addAttribute("roles", roleService.getAllRoles()); //
+        return "/users/update-user";
     }
-    @PostMapping("/saveedit")
-    public String saveUserEdit(UserEdit userEdit){
-        userService.updateUser(userEdit);
+    // Process the form for updating a user
+    @PostMapping("/update/{id}")
+    public String updateUser(@PathVariable Long id,
+                                @Valid User user,
+                                BindingResult result) {
+        if (result.hasErrors()) {
+            user.setId(id);
+            return "/users/update-user";
+        }
+        userService.updateUser(user);
         return "redirect:/users";
     }
-    @GetMapping("/view/{id}")
-    public String ViewUser(@PathVariable Long id, Model model){
-        User user = userService.getUserById(id);
-        model.addAttribute("users", user);
-        return "/users/frm-view";
+    // Handle request to delete a user
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return "redirect:/users";
     }
 }

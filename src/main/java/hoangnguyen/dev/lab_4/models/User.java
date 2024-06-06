@@ -1,6 +1,7 @@
 package hoangnguyen.dev.lab_4.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,20 +20,19 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column
+    @NotBlank
     private String username;
     @Column(unique = true)
     private String email;
-    @Column
+    @NotBlank
     private String password;
-    @Column
+    @NotBlank
     private String firstName;
-    @Column
+    @NotBlank
     private String lastName;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthDay;
-    @Column
-    private boolean isDeleted;
+    private boolean isDeleted = false;
 
     @ManyToOne
     @JoinColumn(name = "role_id")

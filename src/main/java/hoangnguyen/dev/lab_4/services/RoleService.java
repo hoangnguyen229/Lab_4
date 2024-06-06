@@ -2,12 +2,12 @@ package hoangnguyen.dev.lab_4.services;
 
 import hoangnguyen.dev.lab_4.models.Role;
 import hoangnguyen.dev.lab_4.repositories.RoleRepository;
-import hoangnguyen.dev.lab_4.requests.RoleEdit;
-import hoangnguyen.dev.lab_4.requests.RoleRequest;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RoleService {
@@ -17,31 +17,27 @@ public class RoleService {
     public List<Role> getAllRoles(){
         return roleRepository.findAll();
     }
-    public Role getRoleById(long id){
-        return roleRepository.findById(id).orElseThrow(
-                () -> {
-                    throw new RuntimeException("Không tìm thấy role có id=" + id);
-                }
+
+    public Optional<Role> getRoleById(long id){
+        return roleRepository.findById(id);
+    }
+
+    public Role saveRole(Role role){
+        return roleRepository.save(role);
+    }
+
+    public Role updateRole(@NotNull Role role){
+        Role existingRole = roleRepository.findById(role.getRole_id()).orElseThrow(
+                () -> new IllegalStateException("Role with ID " + role.getRole_id() + " does not exist")
         );
+        existingRole.setName(role.getName());
+        return roleRepository.save(existingRole);
     }
-    public Role createRole(RoleRequest roleRequest){
-        try{
-            Role role = new Role();
-            role.setName(roleRequest.getRoleName());
-            roleRepository.save(role);
-            return role;
-        }catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
+
+    public void deleteRoleById(@NotNull long id){
+        if(!roleRepository.existsById(id)){
+            throw new IllegalStateException("Role with ID " + id + " does not exist");
         }
-    }
-    public Role updateRole(RoleEdit roleEdit){
-        try{
-            Role role = getRoleById(roleEdit.getRole_id());
-            role.setName(roleEdit.getRoleName());
-            roleRepository.save(role);
-            return role;
-        }catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
-        }
+        roleRepository.deleteById(id);
     }
 }
