@@ -1,10 +1,13 @@
 package com.hutech.tests3.Controllers;
 
+import com.hutech.tests3.Entities.CustomUserDetail;
 import com.hutech.tests3.RequestEntities.RequestUser;
 import com.hutech.tests3.RequestEntities.RequestUserUpdate;
+import com.hutech.tests3.Services.CustomUserDetailService;
 import com.hutech.tests3.Services.RoleService;
 import com.hutech.tests3.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

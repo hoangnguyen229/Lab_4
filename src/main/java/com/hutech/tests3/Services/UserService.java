@@ -69,7 +69,17 @@ public class UserService {
         user.setUsername(registerUser.getUsername());
         user.setPassword(new BCryptPasswordEncoder().encode(registerUser.getPassword()));
         user.setEmail(registerUser.getEmail());
-        user.setRole(roleRepository.findOneByName("USER"));
+        user.setRole(roleRepository.findOneByName("ADMIN"));
         return userRepository.save(user);
+    }
+    public boolean checkOldPassword(User user, String oldPassword) {
+        if(new BCryptPasswordEncoder().matches(oldPassword, user.getPassword())) {
+            return true;
+        }
+        return false;
+    }
+    public void UpdatePassword(User user, String newPassword) {
+        user.setPassword(new BCryptPasswordEncoder().encode(newPassword));
+        userRepository.save(user);
     }
 }

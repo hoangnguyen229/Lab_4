@@ -15,12 +15,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     @Autowired
     private CustomUserDetailService customUserDetailService;
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private HandleSuccessLogin handleSuccessLogin;
+    @Autowired
+    private HandleFailureLogin handleFailureLogin;
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(
@@ -33,9 +43,12 @@ public class SecurityConfig {
         ).formLogin(AbstractConfiguredSecurityBuilder
                 ->AbstractConfiguredSecurityBuilder.loginPage("/login")
                 .permitAll()
-        ).logout(logout->logout.logoutUrl("/logout")).build();
+                        .successHandler(handleSuccessLogin)
+        ).rememberMe(remember -> remember.tokenRepository(persistentTokenRepository())
+                .tokenValiditySeconds(1000*60*30))
+                .logout(logout->logout
+                        .deleteCookies("JSESSIONID")).build();
     }
-    @Bean
     public UserDetailsService userDetailsService() {
         return customUserDetailService;
 //        UserDetails user = User.builder()
@@ -58,4 +71,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl tokenRepo = new JdbcTokenRepositoryImpl();
+        tokenRepo.setDataSource(dataSource);
+        return tokenRepo;
+    }
 }
